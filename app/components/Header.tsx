@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { MagnifyingGlassIcon, BellIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, BellIcon, Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { useAppStore } from '../lib/store';
 
 interface HeaderProps {
@@ -9,6 +9,61 @@ interface HeaderProps {
         name: string;
         avatarUrl?: string;
     };
+}
+
+function UserMenu({ currentUser }: HeaderProps) {
+    const [showMenu, setShowMenu] = useState(false);
+    const { logout, setActiveView } = useAppStore();
+
+    const handleLogout = () => {
+        if (confirm('Yakin ingin keluar?')) {
+            logout();
+        }
+    };
+
+    return (
+        <div className="relative">
+            <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-2 transition"
+            >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                    {currentUser.name.charAt(0)}
+                </div>
+                <span className="hidden sm:block text-sm font-medium text-gray-700">{currentUser.name}</span>
+            </button>
+
+            {showMenu && (
+                <>
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div className="p-2">
+                            <button
+                                onClick={() => {
+                                    setActiveView('profile');
+                                    setShowMenu(false);
+                                }}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                            >
+                                <UserCircleIcon className="w-5 h-5" />
+                                Profil Saya
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            >
+                                <ArrowRightOnRectangleIcon className="w-5 h-5" />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowMenu(false)}
+                    ></div>
+                </>
+            )}
+        </div>
+    );
 }
 
 export default function Header({ currentUser }: HeaderProps) {
@@ -116,13 +171,8 @@ export default function Header({ currentUser }: HeaderProps) {
                         )}
                     </div>
 
-                    {/* User Profile */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
-                            {currentUser.name.charAt(0)}
-                        </div>
-                        <span className="hidden sm:block text-sm font-medium text-gray-700">{currentUser.name}</span>
-                    </div>
+                    {/* User Profile with Dropdown */}
+                    <UserMenu currentUser={currentUser} />
                 </div>
             </div>
 

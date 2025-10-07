@@ -17,18 +17,37 @@ export interface Event {
 export interface User {
     id: string;
     name: string;
+    email: string;
     nim: string;
     major: string;
     year: number;
+    phone?: string;
+    bio?: string;
+    avatar?: string;
     eventsJoined: number;
     scholarshipsApplied: number;
     competitionsJoined: number;
+    isProfileComplete: boolean;
+}
+
+export interface AuthState {
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+    token: string | null;
 }
 
 interface AppState {
+    // Auth state
+    auth: AuthState;
+    login: (email: string, password: string) => Promise<boolean>;
+    register: (email: string, password: string, nim: string) => Promise<boolean>;
+    adminLogin: (email: string, password: string) => Promise<boolean>;
+    logout: () => void;
+
     // User state
     user: User | null;
     setUser: (user: User) => void;
+    updateProfile: (data: Partial<User>) => void;
 
     // Events state
     events: Event[];
@@ -82,18 +101,120 @@ interface AppState {
 export const useAppStore = create<AppState>()(
     persist(
         (set, get) => ({
-            // Initial user state
-            user: {
-                id: '1',
-                name: 'Ahmad Mahasiswa',
-                nim: '09021382126***',
-                major: 'Teknik Informatika',
-                year: 2022,
-                eventsJoined: 23,
-                scholarshipsApplied: 5,
-                competitionsJoined: 3,
+            // Auth state
+            auth: {
+                isAuthenticated: false,
+                isAdmin: false,
+                token: null,
             },
+            login: async (email: string, password: string) => {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Mock login validation
+                if (email && password.length >= 6) {
+                    const user: User = {
+                        id: Date.now().toString(),
+                        name: email.split('@')[0],
+                        email,
+                        nim: '09021382126***',
+                        major: '',
+                        year: new Date().getFullYear(),
+                        eventsJoined: 0,
+                        scholarshipsApplied: 0,
+                        competitionsJoined: 0,
+                        isProfileComplete: false,
+                    };
+
+                    set({
+                        auth: { isAuthenticated: true, isAdmin: false, token: 'mock-token-' + Date.now() },
+                        user,
+                    });
+
+                    get().addToast({ message: 'Login berhasil! Silakan lengkapi profil Anda.', type: 'success' });
+                    return true;
+                }
+
+                get().addToast({ message: 'Email atau password salah', type: 'error' });
+                return false;
+            },
+            register: async (email: string, password: string, nim: string) => {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Mock registration
+                if (email && password.length >= 6 && nim) {
+                    const user: User = {
+                        id: Date.now().toString(),
+                        name: '',
+                        email,
+                        nim,
+                        major: '',
+                        year: new Date().getFullYear(),
+                        eventsJoined: 0,
+                        scholarshipsApplied: 0,
+                        competitionsJoined: 0,
+                        isProfileComplete: false,
+                    };
+
+                    set({
+                        auth: { isAuthenticated: true, isAdmin: false, token: 'mock-token-' + Date.now() },
+                        user,
+                        activeView: 'complete-profile',
+                    });
+
+                    get().addToast({ message: 'Registrasi berhasil! Lengkapi profil Anda.', type: 'success' });
+                    return true;
+                }
+
+                get().addToast({ message: 'Registrasi gagal. Periksa data Anda.', type: 'error' });
+                return false;
+            },
+            adminLogin: async (email: string, password: string) => {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Mock admin login (admin@unsri.ac.id / admin123)
+                if (email === 'admin@unsri.ac.id' && password === 'admin123') {
+                    set({
+                        auth: { isAuthenticated: true, isAdmin: true, token: 'admin-token-' + Date.now() },
+                        user: {
+                            id: 'admin',
+                            name: 'Administrator',
+                            email: 'admin@unsri.ac.id',
+                            nim: 'ADMIN',
+                            major: 'Administration',
+                            year: 2025,
+                            eventsJoined: 0,
+                            scholarshipsApplied: 0,
+                            competitionsJoined: 0,
+                            isProfileComplete: true,
+                        },
+                        activeView: 'admin-dashboard',
+                    });
+
+                    get().addToast({ message: 'Login admin berhasil!', type: 'success' });
+                    return true;
+                }
+
+                get().addToast({ message: 'Email atau password admin salah', type: 'error' });
+                return false;
+            },
+            logout: () => {
+                set({
+                    auth: { isAuthenticated: false, isAdmin: false, token: null },
+                    user: null,
+                    activeView: 'dashboard',
+                });
+                get().addToast({ message: 'Logout berhasil', type: 'info' });
+            },
+
+            // Initial user state
+            user: null,
             setUser: (user) => set({ user }),
+            updateProfile: (data) => set((state) => ({
+                user: state.user ? { ...state.user, ...data } : null
+            })),
 
             // Initial events state
             events: [
@@ -217,6 +338,7 @@ export const useAppStore = create<AppState>()(
         {
             name: 'unsri-student-portal',
             partialize: (state) => ({
+                auth: state.auth,
                 user: state.user,
                 savedEvents: state.savedEvents,
                 registeredEvents: state.registeredEvents,
