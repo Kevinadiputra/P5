@@ -43,12 +43,12 @@ export default function Toast({ message, type, onClose, duration = 3000 }: Toast
     const Icon = icons[type];
 
     return (
-        <div className={`${colors[type]} border rounded-lg shadow-lg p-4 flex items-center gap-3 min-w-[300px] max-w-md animate-in slide-in-from-top-5 fade-in duration-300`}>
+        <div className={`${colors[type]} border rounded-lg shadow-lg p-4 flex items-center gap-3 min-w-[300px] max-w-md animate-slideInRight`}>
             <Icon className={`w-6 h-6 flex-shrink-0 ${iconColors[type]}`} />
             <p className="flex-1 text-sm font-medium">{message}</p>
             <button
                 onClick={onClose}
-                className="flex-shrink-0 hover:bg-white/50 rounded p-1 transition-colors"
+                className="flex-shrink-0 hover:bg-white/50 rounded p-1 transition-all duration-200 hover:scale-110"
             >
                 <XMarkIcon className="w-4 h-4" />
             </button>

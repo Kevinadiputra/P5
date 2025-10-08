@@ -36,8 +36,18 @@ export default function RegisterPage() {
             <div className="w-full max-w-md">
                 {/* Logo & Title */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex h-16 w-16 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-2xl items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg">
-                        U
+                    <div className="inline-flex h-20 w-20 bg-white rounded-2xl items-center justify-center mb-4 shadow-xl border-2 border-gray-100 overflow-hidden p-2 hover:scale-105 transition-transform duration-300">
+                        <img
+                            src="/logo-unsri.png"
+                            alt="Logo UNSRI"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                // Fallback jika gambar tidak ditemukan
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.classList.add('bg-gradient-to-r', 'from-orange-400', 'to-yellow-400');
+                                e.currentTarget.parentElement!.innerHTML = '<div class="text-white font-bold text-3xl">U</div>';
+                            }}
+                        />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">Daftar Akun Baru</h1>
                     <p className="text-gray-600">Bergabung dengan Portal Mahasiswa UNSRI</p>

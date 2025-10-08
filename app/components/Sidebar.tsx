@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { HomeIcon, CalendarIcon, AcademicCapIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, CalendarIcon, AcademicCapIcon, TrophyIcon, UserCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useAppStore } from '../lib/store';
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
     { id: 'events', label: 'Event & Seminar', icon: CalendarIcon },
     { id: 'beasiswa', label: 'Beasiswa', icon: AcademicCapIcon },
     { id: 'lomba', label: 'Lomba & Kompetisi', icon: TrophyIcon },
+    { id: 'deadline', label: 'Deadline Mendekat', icon: ClockIcon },
     { id: 'profile', label: 'Profile', icon: UserCircleIcon },
 ];
 

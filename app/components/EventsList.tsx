@@ -16,7 +16,8 @@ export default function EventsList() {
         unregisterEvent,
         searchQuery,
         selectedEventType,
-        addToast
+        addToast,
+        setActiveView
     } = useAppStore();
 
     const [selectedEvent, setSelectedEvent] = useState<string | null>(null);

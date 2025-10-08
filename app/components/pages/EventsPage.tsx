@@ -6,7 +6,7 @@ import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { useAppStore } from '../../lib/store';
 
 export default function EventsPage() {
-    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast } = useAppStore();
+    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast, setActiveView } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'event' | 'seminar'>('all');
 
@@ -28,10 +28,15 @@ export default function EventsPage() {
         }
     };
 
-    const handleRegister = (eventId: string, eventTitle: string) => {
+    const handleRegister = (eventId: string, eventTitle: string, registrationLink?: string) => {
         if (!registeredEvents.includes(eventId)) {
             registerEvent(eventId);
             addToast({ message: `Berhasil mendaftar: ${eventTitle}`, type: 'success' });
+
+            // Open registration link if available
+            if (registrationLink) {
+                window.open(registrationLink, '_blank');
+            }
         }
     };
 
@@ -105,16 +110,21 @@ export default function EventsPage() {
 
             {/* Events Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredEvents.map(event => {
+                {filteredEvents.map((event, index) => {
                     const isSaved = savedEvents.includes(event.id);
                     const isRegistered = registeredEvents.includes(event.id);
 
                     return (
-                        <div key={event.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                        <div
+                            key={event.id}
+                            onClick={() => setActiveView(`event-${event.id}`)}
+                            className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer hover:scale-[1.02] transform animate-fadeIn"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
                             {/* Header with gradient */}
                             <div className={`h-2 ${event.type === 'event' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}></div>
 
-                            <div className="p-6">
+                            <div className="p-4 sm:p-6">
                                 {/* Title & Badge */}
                                 <div className="flex items-start justify-between mb-3">
                                     <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition flex-1">
@@ -151,16 +161,22 @@ export default function EventsPage() {
                                 {/* Actions */}
                                 <div className="flex gap-2 pt-4 border-t border-gray-100">
                                     <button
-                                        onClick={() => handleSave(event.id)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${isSaved ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSave(event.id);
+                                        }}
+                                        className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition ${isSaved ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                     >
                                         {isSaved ? <BookmarkSolidIcon className="w-4 h-4" /> : <BookmarkIcon className="w-4 h-4" />}
                                         {isSaved ? 'Tersimpan' : 'Simpan'}
                                     </button>
                                     <button
-                                        onClick={() => handleRegister(event.id, event.title)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRegister(event.id, event.title, event.registrationLink);
+                                        }}
                                         disabled={isRegistered}
-                                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${isRegistered ? 'bg-green-50 text-green-700 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-md hover:shadow-lg'}`}
+                                        className={`flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 hover:scale-105 transform ${isRegistered ? 'bg-green-50 text-green-700 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-md hover:shadow-lg'}`}
                                     >
                                         {isRegistered ? '✓ Sudah Terdaftar' : 'Daftar Sekarang'}
                                     </button>

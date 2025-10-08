@@ -1,18 +1,30 @@
 "use client";
 
 import React, { useState } from 'react';
-import { UserCircleIcon, PencilIcon, CheckIcon, XMarkIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAppStore } from '../../lib/store';
+import AvatarUpload from '../AvatarUpload';
 
 export default function ProfilePage() {
-    const { user, updateProfile, addToast } = useAppStore();
+    const { user, updateProfile, updateTargets, addToast } = useAppStore();
+
+    const handleAvatarUpload = (imageUrl: string) => {
+        updateProfile({ avatar: imageUrl });
+        addToast({ message: 'Foto profil berhasil diperbarui!', type: 'success' });
+    };
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingTargets, setIsEditingTargets] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || '',
         phone: user?.phone || '',
         major: user?.major || '',
         year: user?.year || new Date().getFullYear(),
         bio: user?.bio || '',
+    });
+    const [targetData, setTargetData] = useState({
+        events: user?.targets?.events || 0,
+        beasiswa: user?.targets?.beasiswa || 0,
+        lomba: user?.targets?.lomba || 0,
     });
 
     const handleSave = () => {
@@ -58,20 +70,12 @@ export default function ProfilePage() {
         <div className="space-y-6">
             {/* Header Card */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl">
-                <div className="flex items-center gap-6">
-                    {/* Avatar */}
-                    <div className="relative">
-                        <div className="w-24 h-24 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white">
-                            {user?.avatar ? (
-                                <img src={user.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                            ) : (
-                                <UserCircleIcon className="w-16 h-16 text-white" />
-                            )}
-                        </div>
-                        <button className="absolute bottom-0 right-0 bg-white text-blue-600 p-2 rounded-full shadow-lg hover:bg-blue-50 transition">
-                            <CameraIcon className="w-4 h-4" />
-                        </button>
-                    </div>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    {/* Avatar with Upload */}
+                    <AvatarUpload
+                        currentAvatar={user?.avatar}
+                        onUpload={handleAvatarUpload}
+                    />
 
                     {/* User Info */}
                     <div className="flex-1">
@@ -100,33 +104,163 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">Event Diikuti</span>
-                        <span className="text-3xl">🎉</span>
-                    </div>
-                    <div className="text-3xl font-bold text-blue-600">{user?.eventsJoined || 0}</div>
-                    <div className="text-sm text-gray-500 mt-1">Total event</div>
+            {/* Target Cards with Progress */}
+            <div className="bg-white rounded-xl shadow-lg p-6 animate-fadeIn">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">Target Pencapaian</h2>
+                    {!isEditingTargets ? (
+                        <button
+                            onClick={() => {
+                                setTargetData({
+                                    events: user?.targets?.events || 0,
+                                    beasiswa: user?.targets?.beasiswa || 0,
+                                    lomba: user?.targets?.lomba || 0,
+                                });
+                                setIsEditingTargets(true);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 hover:scale-105 transform flex items-center gap-2"
+                        >
+                            <PencilIcon className="w-4 h-4" />
+                            Atur Target
+                        </button>
+                    ) : (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setIsEditingTargets(false)}
+                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200 hover:scale-105 transform flex items-center gap-2"
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => {
+                                    updateTargets(targetData);
+                                    setIsEditingTargets(false);
+                                    addToast({ message: 'Target berhasil diperbarui!', type: 'success' });
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 hover:scale-105 transform flex items-center gap-2"
+                            >
+                                <CheckIcon className="w-4 h-4" />
+                                Simpan
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">Beasiswa</span>
-                        <span className="text-3xl">🎓</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Events Target */}
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100 hover-lift">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-gray-700 font-medium">Event & Seminar</span>
+                            <span className="text-3xl">🎉</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-end gap-2">
+                                <span className="text-4xl font-bold text-blue-600">{user?.eventsJoined || 0}</span>
+                                <span className="text-gray-500 mb-1">/ {user?.targets?.events || 0} target</span>
+                            </div>
+                            {isEditingTargets && (
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={targetData.events}
+                                    onChange={(e) => setTargetData({ ...targetData, events: parseInt(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Set target"
+                                />
+                            )}
+                            {!isEditingTargets && user?.targets?.events ? (
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-xs text-gray-600">
+                                        <span>Progress</span>
+                                        <span>{Math.min(100, Math.round((user.eventsJoined / user.targets.events) * 100))}%</span>
+                                    </div>
+                                    <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                                            style={{ width: `${Math.min(100, (user.eventsJoined / user.targets.events) * 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-green-600">{user?.scholarshipsApplied || 0}</div>
-                    <div className="text-sm text-gray-500 mt-1">Diajukan</div>
-                </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">Lomba</span>
-                        <span className="text-3xl">🏆</span>
+                    {/* Beasiswa Target */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 hover-lift">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-gray-700 font-medium">Beasiswa</span>
+                            <span className="text-3xl">🎓</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-end gap-2">
+                                <span className="text-4xl font-bold text-green-600">{user?.scholarshipsApplied || 0}</span>
+                                <span className="text-gray-500 mb-1">/ {user?.targets?.beasiswa || 0} target</span>
+                            </div>
+                            {isEditingTargets && (
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={targetData.beasiswa}
+                                    onChange={(e) => setTargetData({ ...targetData, beasiswa: parseInt(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                                    placeholder="Set target"
+                                />
+                            )}
+                            {!isEditingTargets && user?.targets?.beasiswa ? (
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-xs text-gray-600">
+                                        <span>Progress</span>
+                                        <span>{Math.min(100, Math.round((user.scholarshipsApplied / user.targets.beasiswa) * 100))}%</span>
+                                    </div>
+                                    <div className="w-full bg-green-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-green-600 h-full rounded-full transition-all duration-500"
+                                            style={{ width: `${Math.min(100, (user.scholarshipsApplied / user.targets.beasiswa) * 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-orange-600">{user?.competitionsJoined || 0}</div>
-                    <div className="text-sm text-gray-500 mt-1">Diikuti</div>
+
+                    {/* Lomba Target */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100 hover-lift">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-gray-700 font-medium">Lomba & Kompetisi</span>
+                            <span className="text-3xl">🏆</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-end gap-2">
+                                <span className="text-4xl font-bold text-purple-600">{user?.competitionsJoined || 0}</span>
+                                <span className="text-gray-500 mb-1">/ {user?.targets?.lomba || 0} target</span>
+                            </div>
+                            {isEditingTargets && (
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={targetData.lomba}
+                                    onChange={(e) => setTargetData({ ...targetData, lomba: parseInt(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                    placeholder="Set target"
+                                />
+                            )}
+                            {!isEditingTargets && user?.targets?.lomba ? (
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-xs text-gray-600">
+                                        <span>Progress</span>
+                                        <span>{Math.min(100, Math.round((user.competitionsJoined / user.targets.lomba) * 100))}%</span>
+                                    </div>
+                                    <div className="w-full bg-purple-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-purple-600 h-full rounded-full transition-all duration-500"
+                                            style={{ width: `${Math.min(100, (user.competitionsJoined / user.targets.lomba) * 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
+                    </div>
                 </div>
             </div>
 

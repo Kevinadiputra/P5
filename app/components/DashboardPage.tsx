@@ -19,6 +19,8 @@ import BeasiswaPage from './pages/BeasiswaPage';
 import LombaPage from './pages/LombaPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import EventDetailPage from './pages/EventDetailPage';
+import DeadlinePage from './pages/DeadlinePage';
 
 export default function DashboardPage() {
     const { toasts, removeToast, activeView, auth, user } = useAppStore();
@@ -34,8 +36,8 @@ export default function DashboardPage() {
         return <LoginPage />;
     }
 
-    // Profile completion check
-    if (user && !user.isProfileComplete && activeView === 'complete-profile') {
+    // Profile completion check - only for new users who haven't completed profile
+    if (user && !user.isProfileComplete) {
         return <CompleteProfilePage />;
     }
 
@@ -62,6 +64,12 @@ export default function DashboardPage() {
 
     // Main app routing
     const renderContent = () => {
+        // Check for event detail view
+        if (activeView.startsWith('event-')) {
+            const eventId = activeView.replace('event-', '');
+            return <EventDetailPage eventId={eventId} />;
+        }
+
         switch (activeView) {
             case 'events':
                 return <EventsPage />;
@@ -71,6 +79,8 @@ export default function DashboardPage() {
                 return <LombaPage />;
             case 'profile':
                 return <ProfilePage />;
+            case 'deadline':
+                return <DeadlinePage />;
             case 'dashboard':
             default:
                 return <DashboardMain />;

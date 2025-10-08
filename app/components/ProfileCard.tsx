@@ -6,10 +6,12 @@ import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useAppStore } from '../lib/store';
 
 export default function ProfileCard() {
-    const { user, registeredEvents, savedEvents, setUser } = useAppStore();
+    const { user, registeredEvents, savedEvents, setUser, updateTargets, addToast } = useAppStore();
     const [showMenu, setShowMenu] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingTarget, setIsEditingTarget] = useState(false);
     const [editedName, setEditedName] = useState(user?.name || '');
+    const [editedTarget, setEditedTarget] = useState(user?.targets?.events || 15);
 
     const handleSaveName = () => {
         if (user && editedName.trim()) {
@@ -60,26 +62,16 @@ export default function ProfileCard() {
                     </button>
 
                     {showMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10 animate-scaleIn">
                             <button
                                 onClick={() => {
                                     setIsEditing(true);
                                     setShowMenu(false);
                                 }}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded-lg transition-all duration-200"
                             >
                                 <PencilIcon className="w-4 h-4" />
                                 Edit Nama
-                            </button>
-                            <button
-                                onClick={() => {
-                                    alert('Fitur lihat profil lengkap');
-                                    setShowMenu(false);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded-b-lg"
-                            >
-                                <UserCircleIcon className="w-4 h-4" />
-                                Lihat Profil Lengkap
                             </button>
                         </div>
                     )}
@@ -108,12 +100,52 @@ export default function ProfileCard() {
             <div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-2">
                     <span className="text-xs lg:text-sm font-medium text-gray-700">Progress Event</span>
-                    <span className="text-xs text-gray-500">{registeredEvents.length} / 15 Target</span>
+                    <div className="flex items-center gap-2">
+                        {isEditingTarget ? (
+                            <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-500">{registeredEvents.length} /</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={editedTarget}
+                                    onChange={(e) => setEditedTarget(parseInt(e.target.value) || 0)}
+                                    className="w-12 px-1 py-0.5 text-xs border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-center"
+                                />
+                                <button
+                                    onClick={() => {
+                                        updateTargets({
+                                            events: editedTarget,
+                                            beasiswa: user?.targets?.beasiswa || 0,
+                                            lomba: user?.targets?.lomba || 0,
+                                        });
+                                        setIsEditingTarget(false);
+                                        addToast({ message: 'Target event berhasil diperbarui!', type: 'success' });
+                                    }}
+                                    className="text-green-600 hover:bg-green-50 rounded p-0.5 transition-all duration-200"
+                                >
+                                    <CheckCircleIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-500">{registeredEvents.length} / {user?.targets?.events || 15} Target</span>
+                                <button
+                                    onClick={() => {
+                                        setEditedTarget(user?.targets?.events || 15);
+                                        setIsEditingTarget(true);
+                                    }}
+                                    className="text-blue-600 hover:bg-blue-50 rounded p-0.5 transition-all duration-200"
+                                >
+                                    <PencilIcon className="w-3 h-3" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min((registeredEvents.length / 15) * 100, 100)}%` }}
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min((registeredEvents.length / (user?.targets?.events || 15)) * 100, 100)}%` }}
                     ></div>
                 </div>
 

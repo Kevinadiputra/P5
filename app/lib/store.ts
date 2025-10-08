@@ -12,6 +12,10 @@ export interface Event {
     deadline?: string;
     saved?: boolean;
     registered?: boolean;
+    image?: string;
+    registrationLink?: string;
+    organizer?: string;
+    prize?: string;
 }
 
 export interface User {
@@ -28,6 +32,11 @@ export interface User {
     scholarshipsApplied: number;
     competitionsJoined: number;
     isProfileComplete: boolean;
+    targets?: {
+        events: number;
+        beasiswa: number;
+        lomba: number;
+    };
 }
 
 export interface AuthState {
@@ -48,6 +57,7 @@ interface AppState {
     user: User | null;
     setUser: (user: User) => void;
     updateProfile: (data: Partial<User>) => void;
+    updateTargets: (targets: { events: number; beasiswa: number; lomba: number }) => void;
 
     // Events state
     events: Event[];
@@ -96,6 +106,10 @@ interface AppState {
     }>;
     addToast: (toast: Omit<AppState['toasts'][0], 'id'>) => void;
     removeToast: (id: string) => void;
+
+    // Helper functions
+    getEventStatus: (deadline?: string) => 'open' | 'closed' | 'deadline-soon';
+    updateEventStatuses: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -215,8 +229,11 @@ export const useAppStore = create<AppState>()(
             updateProfile: (data) => set((state) => ({
                 user: state.user ? { ...state.user, ...data } : null
             })),
+            updateTargets: (targets) => set((state) => ({
+                user: state.user ? { ...state.user, targets } : null
+            })),
 
-            // Initial events state
+            // Initial events state with auto deadline calculation
             events: [
                 {
                     id: '1',
@@ -224,28 +241,41 @@ export const useAppStore = create<AppState>()(
                     type: 'beasiswa',
                     date: '2025-10-15',
                     location: 'Gedung Rektorat UNSRI',
-                    description: 'Informasi lengkap tentang beasiswa LPDP untuk S2 dan S3',
+                    description: 'Informasi lengkap tentang beasiswa LPDP untuk S2 dan S3. Program beasiswa penuh untuk jenjang magister dan doktor di dalam dan luar negeri.',
                     status: 'open',
-                    deadline: '2025-10-30'
+                    deadline: '2025-10-30',
+                    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500',
+                    registrationLink: 'https://lpdp.kemenkeu.go.id',
+                    organizer: 'LPDP Kemenkeu',
+                    prize: 'Beasiswa penuh S2/S3'
                 },
                 {
                     id: '2',
-                    title: 'Lomba Programming ICPC',
+                    title: 'Lomba Programming ICPC Regional',
                     type: 'lomba',
                     date: '2025-10-20',
                     location: 'Lab Komputer Fasilkom',
-                    description: 'Kompetisi programming tingkat internasional',
+                    description: 'International Collegiate Programming Contest - kompetisi programming bergengsi tingkat internasional untuk mahasiswa.',
                     status: 'open',
-                    deadline: '2025-10-18'
+                    deadline: '2025-10-12',
+                    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500',
+                    registrationLink: 'https://icpc.global',
+                    organizer: 'ACM ICPC',
+                    prize: 'Medali + Sertifikat + Hadiah'
                 },
                 {
                     id: '3',
-                    title: 'Workshop Machine Learning',
+                    title: 'Workshop Machine Learning & AI',
                     type: 'event',
                     date: '2025-10-25',
-                    location: 'Auditorium Fasilkom',
-                    description: 'Pelatihan dasar machine learning dengan Python',
-                    status: 'open'
+                    location: 'Auditorium Fasilkom UNSRI',
+                    description: 'Pelatihan intensif machine learning dengan Python, TensorFlow, dan praktik hands-on project AI.',
+                    status: 'open',
+                    deadline: '2025-10-20',
+                    image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500',
+                    registrationLink: 'https://forms.gle/workshop-ml',
+                    organizer: 'Fasilkom UNSRI',
+                    prize: 'Sertifikat + E-Book'
                 },
                 {
                     id: '4',
@@ -253,9 +283,41 @@ export const useAppStore = create<AppState>()(
                     type: 'beasiswa',
                     date: '2025-11-05',
                     location: 'Online',
-                    description: 'Beasiswa untuk mahasiswa berprestasi',
-                    status: 'deadline-soon',
-                    deadline: '2025-11-10'
+                    description: 'Beasiswa untuk mahasiswa berprestasi dengan IPK minimal 3.25. Bantuan biaya pendidikan full semester.',
+                    status: 'open',
+                    deadline: '2025-10-10',
+                    image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=500',
+                    registrationLink: 'https://beasiswaunggulan.kemdikbud.go.id',
+                    organizer: 'Kemendikbud RI',
+                    prize: 'Beasiswa Full Semester'
+                },
+                {
+                    id: '5',
+                    title: 'Hackathon Innovation Challenge 2025',
+                    type: 'lomba',
+                    date: '2025-11-10',
+                    location: 'Jakarta Convention Center',
+                    description: 'Kompetisi 48 jam non-stop membuat solusi inovatif untuk masalah nyata menggunakan teknologi.',
+                    status: 'open',
+                    deadline: '2025-10-25',
+                    image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500',
+                    registrationLink: 'https://hackathon2025.com',
+                    organizer: 'TechFest Indonesia',
+                    prize: 'Total Rp 100 Juta'
+                },
+                {
+                    id: '6',
+                    title: 'Seminar Nasional Teknologi Digital',
+                    type: 'seminar',
+                    date: '2025-10-28',
+                    location: 'Hotel Aryaduta Palembang',
+                    description: 'Seminar dengan pembicara praktisi industri membahas tren teknologi digital dan AI di Indonesia.',
+                    status: 'open',
+                    deadline: '2025-10-22',
+                    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500',
+                    registrationLink: 'https://seminar-tech.unsri.ac.id',
+                    organizer: 'UNSRI & ILKOM',
+                    prize: 'Sertifikat 3 SKP'
                 }
             ],
             savedEvents: [],
@@ -333,7 +395,29 @@ export const useAppStore = create<AppState>()(
             })),
             removeToast: (id) => set((state) => ({
                 toasts: state.toasts.filter(t => t.id !== id)
-            }))
+            })),
+
+            // Helper functions
+            getEventStatus: (deadline?: string) => {
+                if (!deadline) return 'open';
+
+                const now = new Date();
+                const deadlineDate = new Date(deadline);
+                const daysUntilDeadline = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+                if (daysUntilDeadline < 0) return 'closed';
+                if (daysUntilDeadline <= 7) return 'deadline-soon';
+                return 'open';
+            },
+            updateEventStatuses: () => {
+                const getStatus = get().getEventStatus;
+                set((state) => ({
+                    events: state.events.map(event => ({
+                        ...event,
+                        status: getStatus(event.deadline)
+                    }))
+                }));
+            }
         }),
         {
             name: 'unsri-student-portal',

@@ -6,7 +6,7 @@ import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { useAppStore } from '../../lib/store';
 
 export default function BeasiswaPage() {
-    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast } = useAppStore();
+    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast, setActiveView } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
 
     const beasiswaItems = events.filter(e => e.type === 'beasiswa');
@@ -87,16 +87,21 @@ export default function BeasiswaPage() {
 
             {/* Beasiswa List */}
             <div className="space-y-4">
-                {filteredBeasiswa.map(beasiswa => {
+                {filteredBeasiswa.map((beasiswa, index) => {
                     const isSaved = savedEvents.includes(beasiswa.id);
                     const isRegistered = registeredEvents.includes(beasiswa.id);
 
                     return (
-                        <div key={beasiswa.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                        <div
+                            key={beasiswa.id}
+                            onClick={() => setActiveView(`event-${beasiswa.id}`)}
+                            className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer hover:scale-[1.01] transform animate-fadeIn"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
                             {/* Top border */}
                             <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-500"></div>
 
-                            <div className="p-6">
+                            <div className="p-4 sm:p-6">
                                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                                     {/* Left Content */}
                                     <div className="flex-1">
@@ -142,16 +147,22 @@ export default function BeasiswaPage() {
                                     {/* Right Actions */}
                                     <div className="flex lg:flex-col gap-2 lg:min-w-[140px]">
                                         <button
-                                            onClick={() => handleSave(beasiswa.id)}
-                                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition ${isSaved ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSave(beasiswa.id);
+                                            }}
+                                            className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition ${isSaved ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                         >
                                             {isSaved ? <BookmarkSolidIcon className="w-4 h-4" /> : <BookmarkIcon className="w-4 h-4" />}
                                             <span className="hidden lg:inline">{isSaved ? 'Tersimpan' : 'Simpan'}</span>
                                         </button>
                                         <button
-                                            onClick={() => handleRegister(beasiswa.id, beasiswa.title)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRegister(beasiswa.id, beasiswa.title);
+                                            }}
                                             disabled={isRegistered || beasiswa.status === 'closed'}
-                                            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg font-medium transition ${isRegistered || beasiswa.status === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg'}`}
+                                            className={`flex-1 lg:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition ${isRegistered || beasiswa.status === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg'}`}
                                         >
                                             {isRegistered ? '✓ Sudah Apply' : 'Apply Sekarang'}
                                         </button>

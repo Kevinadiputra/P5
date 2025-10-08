@@ -6,7 +6,7 @@ import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { useAppStore } from '../../lib/store';
 
 export default function LombaPage() {
-    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast } = useAppStore();
+    const { events, savedEvents, registeredEvents, saveEvent, unsaveEvent, registerEvent, addToast, setActiveView } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
 
     const lombaItems = events.filter(e => e.type === 'lomba');
@@ -77,12 +77,17 @@ export default function LombaPage() {
 
             {/* Lomba Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredLomba.map(lomba => {
+                {filteredLomba.map((lomba, index) => {
                     const isSaved = savedEvents.includes(lomba.id);
                     const isRegistered = registeredEvents.includes(lomba.id);
 
                     return (
-                        <div key={lomba.id} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group hover:-translate-y-1">
+                        <div
+                            key={lomba.id}
+                            onClick={() => setActiveView(`event-${lomba.id}`)}
+                            className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group hover:-translate-y-2 cursor-pointer animate-fadeIn"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
                             {/* Image placeholder / gradient header */}
                             <div className="h-32 bg-gradient-to-br from-orange-400 via-red-400 to-pink-500 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-black bg-opacity-20"></div>
@@ -104,9 +109,9 @@ export default function LombaPage() {
                                 </div>
                             </div>
 
-                            <div className="p-6">
+                            <div className="p-4 sm:p-6">
                                 {/* Title */}
-                                <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition line-clamp-2">
+                                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition line-clamp-2">
                                     {lomba.title}
                                 </h3>
 
@@ -143,16 +148,22 @@ export default function LombaPage() {
                                 {/* Actions */}
                                 <div className="flex gap-2 pt-4 border-t border-gray-100">
                                     <button
-                                        onClick={() => handleSave(lomba.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSave(lomba.id);
+                                        }}
                                         className={`p-2 rounded-lg font-medium transition ${isSaved ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                         title={isSaved ? 'Tersimpan' : 'Simpan'}
                                     >
                                         {isSaved ? <BookmarkSolidIcon className="w-5 h-5" /> : <BookmarkIcon className="w-5 h-5" />}
                                     </button>
                                     <button
-                                        onClick={() => handleRegister(lomba.id, lomba.title)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRegister(lomba.id, lomba.title);
+                                        }}
                                         disabled={isRegistered || lomba.status === 'closed'}
-                                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${isRegistered || lomba.status === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 shadow-md hover:shadow-lg'}`}
+                                        className={`flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition ${isRegistered || lomba.status === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 shadow-md hover:shadow-lg'}`}
                                     >
                                         {isRegistered ? '✓ Terdaftar' : 'Daftar'}
                                     </button>
